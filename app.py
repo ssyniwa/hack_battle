@@ -20,22 +20,48 @@ def init_game():
 
 
 # デッキ生成と手札配布
+# デッキ生成と手札配布
 def generate_deck_and_deal():
   suits = ["♠", "♣", "♥", "♦"]
+  suit_names = {
+      "♠": "spade",
+      "♣": "club",
+      "♥": "heart",
+      "♦": "diamond",
+  }
   deck = []
 
-  # 通常カードの生成 (数字 1〜13)
+  # 通常カードの生成 (4スート × 13数値 = 52枚)
   for suit in suits:
     for num in range(1, 14):
-      deck.append({"type": "normal", "suit": suit, "val": num, "id": f"{suit}{num}"})
+      # 画像ファイル名のマッピング例: images/spade_1.png など
+      img_filename = f"images/{suit_names[suit]}_{num}.png"
+      deck.append({
+          "type": "normal",
+          "suit": suit,
+          "val": num,
+          "id": f"{suit}{num}",
+          "img": img_filename,
+      })
 
   # 特殊カード（バグ・AI）の追加
-  deck.append({"type": "bug", "suit": "🌟", "val": 0, "id": "BUG-01"})
-  deck.append({"type": "ai", "suit": "🤖", "val": 10, "id": "AI-01"})
+  deck.append({
+      "type": "bug",
+      "suit": "🌟",
+      "val": 0,
+      "id": "BUG-01",
+      "img": "images/bug_card.png",
+  })
+  deck.append({
+      "type": "ai",
+      "suit": "🤖",
+      "val": 10,
+      "id": "AI-01",
+      "img": "images/ai_card.png",
+  })
 
   random.shuffle(deck)
 
-  # プレイヤーとCPUに手札を配る (5枚ずつ)
   st.session_state.player_hand = [deck.pop() for _ in range(5)]
   st.session_state.cpu_hand = [deck.pop() for _ in range(5)]
   st.session_state.deck = deck
@@ -92,38 +118,66 @@ if st.session_state.game_over:
 
 
 # プレイヤーターン：カード選択
-st.subheader("🃏 あなたの手札 (カードを選択してアクション)")
+# プレイヤーターン：カード選択（サイバー戦場風ビジュアル）
+st.subheader("🃏 サイバーデッキ（手札ターミナル）")
+st.markdown(
+    "戦場に展開されたプロトコルを選択し、敵メインフレームへハッキングコマンドを実行せよ。"
+)
+
+# 手札を横並びのカラムでリッチに表示して選ばせる
+hand_cols = st.columns(len(st.session_state.player_hand))
+selected_card_idx = None
+
+# ラジオボタンの代わりに視覚的な選択肢として処理する場合のインデックス管理
+# ここではシンプルにselectbox、またはカラム内のボタンで選択させる方式に拡張できます。
 selected_card_idx = st.radio(
-    "使用するカードを選んでください:",
+    "使用するカード（プロトコル）を選択:",
     options=range(len(st.session_state.player_hand)),
-    format_func=lambda i: f"[{st.session_state.player_hand[i]['id']}] (値: {st.session_state.player_hand[i]['val']})",
+    format_func=lambda i: (
+        f"[{st.session_state.player_hand[i]['id']}] "
+        f"属性: {st.session_state.player_hand[i]['suit']} ｜ "
+        f"演算値: {st.session_state.player_hand[i]['val']}"
+    ),
+    horizontal=True,
 )
 
 card = st.session_state.player_hand[selected_card_idx]
 
-# AI生成画像のプレースホルダー表示用（必要に応じてURLやローカルパスに変更可能）
-# 例: st.image("path/to/ai_character.png", width=150)
-
-st.info(
-    f"選択中カード: ** ｜ スート特性: "
-    + (
-        "♠ 防御 (ファイアウォール)"
-        if card["suit"] == "♠"
-        else (
-            "♣ ウイルス攻撃"
-            if card["suit"] == "♣"
-            else (
-                "♥ システム修復"
-                if card["suit"] == "♥"
-                else (
-                    "♦ 資金獲得"
-                    if card["suit"] == "♦"
-                    else "⚡ 特殊効果 (バグ/AI)"
-                )
-            )
-        )
+# 選択中カードのAI生成画像と詳細プレビュー表示
+col_img, col_desc = st.columns([1, 2])
+with col_img:
+  # 画像ファイルが存在しない場合のフォールバックとしてエラーを防ぐため st.image を使用
+  # ※ 実際に画像を用意したパス（例: "images/spade_1.png" など）を指定してください
+  try:
+    st.image(
+        card["img"], width=140, caption=f"Protocol: {card['id']}"
+    )  #
+  except Exception:
+    # 画像ファイルがまだ無い場合のプレースホルダー表示
+    st.markdown(
+        f"<div style='border: 2px dashed #00ffcc; padding: 30px; text-align: center; border-radius: 10px;'>"
+        f"<h3>{card['id']}</h3><p>AI Card Art</p></div>",
+        unsafe_allow_html=True,
     )
-)
+
+with col_desc:
+  st.markdown("### 🎯 選択中プロトコルの解析データ")
+  st.markdown(f"- **カードID:** `{card['id']}`")
+  st.markdown(f"- **ベース数値:** `{card['val']}`")
+
+  suit_effect_desc = {
+      "♠": "🛡️ **ファイアウォール防御**：自陣のサーバー耐久値（HP）を強固にする。",
+      "♣": "🦠 **ウイルス攻撃**：敵のメインフレームに直接ダメージを与える。",
+      "♥": "💖 **システム修復**：破損したコードを修復しHPを回復する。",
+      "♦": "💠 **資金獲得**：ハッキングに必要な暗号通貨（リソース）を拡張する。",
+      "🌟": "⚠️ **バグカード**：何が起こるか分からない予測不能なハイリスク・ハイリターン効果。",
+      "🤖": "🚀 **AIカード**：強力な攻守一体の専用演算処理を発動する。",
+  }
+  st.info(
+      suit_effect_desc.get(
+          card["suit"], "⚡ 特殊プロトコル：未知のシステム効果"
+      )
+  )
 
 if st.button("🚀 カードを実行してハッキングをしかける", type="primary"):
   # プレイヤーのアクション処理
