@@ -229,7 +229,7 @@ if st.button("🚀 カードを実行してハッキングをしかける", type
   elif card["type"] == "ai":  # AIカード（強力な全体効果）
     st.session_state.cpu_hp = max(0, st.session_state.cpu_hp - 30)
     st.session_state.player_hp = min(100, st.session_state.player_hp + 20)
-    .toast("🤖 AI覚醒！ CPUに30ダメージ＆自陣HPが20回復！", icon="🚀")
+    st.toast("🤖 AI覚醒！ CPUに30ダメージ＆自陣HPが20回復！", icon="🚀")
 
   # 手札から使用したカードを削除し、新しいカードを1枚補充
   st.session_state.player_hand.pop(selected_card_idx)
