@@ -129,7 +129,7 @@ if "last_cpu_action" in st.session_state and st.session_state.last_cpu_action:
   for idx, c in enumerate(st.session_state.last_cpu_action):
     with cpu_cols[idx]:
       try:
-        st.image(c["img"], width=120, caption=f"CPU: {c['id']}")
+        st.image(c["img"], width=200, caption=f"CPU: {c['id']}")
       except Exception:
         st.markdown(f"**{c['id']}**")
       st.text(f"属性:{c['suit']} / 値:{c['val']}")
@@ -185,7 +185,7 @@ if selected_indices:
     c = st.session_state.player_hand[card_i]
     with preview_cols[idx]:
       try:
-        st.image(c["img"], width=150, caption=f"{c['id']}")
+        st.image(c["img"], width=200, caption=f"{c['id']}")
       except Exception:
         st.markdown(f"**{c['id']}**")
       st.text(f"属性:{c['suit']} / 値:{c['val']}")
