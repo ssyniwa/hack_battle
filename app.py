@@ -57,7 +57,7 @@ def generate_deck_and_deal():
       "suit": "🤖",
       "val": 10,
       "id": "AI-01",
-      "img": "images/ai_card.png",
+      "img": "images/ai_card.jpg",
   })
 
   random.shuffle(deck)
