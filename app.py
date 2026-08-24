@@ -69,7 +69,7 @@ def generate_deck_and_deal():
   st.session_state.cpu_hand = [st.session_state.deck.pop() for _ in range(8)]
 
 
-# カード補充関数[cite: 3, 4]
+# カード補充関数[cite: 5]
 def draw_card_for_player():
   if not st.session_state.deck:
     if st.session_state.discard_pile:
@@ -96,13 +96,13 @@ def draw_card_for_cpu():
 if "player_hp" not in st.session_state:
   init_game()
 
-# タイトル[cite: 3, 4]
-st.title("💻 スート・コード：ネットワーク [拡張版]")
+# タイトル
+st.title("💻 スート・コード：ネットワーク [経済影響拡張版]")
 st.markdown(
-    "**サイバーパンク・ハッキングバトル** — 8枚の手札から最大5枚を同時選択し、ポーカー役コンボで敵を圧倒せよ！"
+    "**サイバーパンク・ハッキングバトル** — 資金（Credits）が多いほど全カードの効果や役の倍率が増幅！経済力を制して勝利を掴め！"
 )
 
-# ステータス表示[cite: 3, 4]
+# ステータス表示
 col1, col2, col3 = st.columns(3)
 with col1:
   st.metric(
@@ -123,7 +123,7 @@ with col3:
 
 st.divider()
 
-# 直前のCPUの行動表示エリア[cite: 3, 4]
+# 直前のCPUの行動表示エリア[cite: 5]
 if "last_cpu_action" in st.session_state and st.session_state.last_cpu_action:
   st.markdown("### 🤖 直前のCPUのハッキング行動")
   cpu_cols = st.columns(len(st.session_state.last_cpu_action))
@@ -132,11 +132,11 @@ if "last_cpu_action" in st.session_state and st.session_state.last_cpu_action:
       try:
         st.image(c["img"], width=200, caption=f"CPU: {c['id']}")
       except Exception:
-        st.markdown(f"**{c['id']}**")
+        st.markdown(f"**{c['id']}**")[cite: 5]
       st.text(f"属性:{c['suit']} / 値:{c['val']}")
   st.divider()
 
-# 勝敗判定[cite: 3, 4]
+# 勝敗判定[cite: 5]
 if st.session_state.player_hp <= 0 or st.session_state.cpu_hp <= 0:
   st.session_state.game_over = True
   if st.session_state.player_hp <= 0 and st.session_state.cpu_hp <= 0:
@@ -154,7 +154,7 @@ if st.session_state.game_over:
     st.balloons()
     st.success(f"🎉 ハッキング勝利！ 敵を制圧しました！（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）")
   else:
-    st.error(f"💥 ハッキング失敗… システムがロックアウトされました。（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）")
+    st.error(f"💥 ハッキング失敗… システムがロックアウトされました。（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）"
 
   if st.button("🔄 システム再起動 (リトライ)"):
     init_game()
@@ -174,7 +174,7 @@ hand_options = {
 selected_labels = st.multiselect(
     "同時に実行するカードを選択してください (最大5枚):",
     options=list(hand_options.keys()),
-    max_selections=5,  # 最大5枚に変更
+    max_selections=5,  # 最大5枚に変更[cite: 5]
 )
 
 selected_indices = [hand_options[label] for label in selected_labels]
@@ -188,7 +188,7 @@ if selected_indices:
       try:
         st.image(c["img"], width=200, caption=f"{c['id']}")
       except Exception:
-        st.markdown(f"**{c['id']}**")
+        st.markdown(f"**{c['id']}**")[cite: 5]
       st.text(f"属性:{c['suit']} / 値:{c['val']}")
 else:
   st.info("💡 カードを1枚以上選択すると、コンボ効果や詳細を確認できます。")
@@ -240,6 +240,10 @@ if st.button(
     disabled=len(selected_indices) == 0,
 ):
 
+  # --- 経済力によるスケーリング係数の算出 ---
+  # 資金10を基準に、所有資金に応じて全体の影響が大きくなる（例: 資金10で1.0倍、50で1.8倍、100で2.8倍）
+  player_credit_scaling = 1.0 + (st.session_state.player_credits / 50.0)
+
   # 選択されたカードオブジェクトのリスト
   chosen_cards = [st.session_state.player_hand[i] for i in selected_indices]
 
@@ -248,10 +252,14 @@ if st.button(
       chosen_cards
   )
 
+  # 資金による倍率補正を最終的な役倍率・ボーナスに適用
+  effective_multiplier = multiplier * player_credit_scaling
+  effective_bonus_dmg = int(bonus_dmg * player_credit_scaling)
+
   if hand_name != "単発/なし":
     st.toast(
-        f"🌟【役成立: {hand_name}】効果が {multiplier}倍"
-        " に増幅！追加ボーナス獲得！",
+        f"🌟【役成立: {hand_name}】経済スケーリング({player_credit_scaling:.2f}倍)"
+        f"により実効倍率 {effective_multiplier:.2f}倍 に増幅！",
         icon="🔥",
     )
 
@@ -266,16 +274,16 @@ if st.button(
 
     if card["type"] == "normal":
       if card["suit"] == "♣":
-        dmg = int(card["val"] * 2 * multiplier)
+        dmg = int(card["val"] * 2 * effective_multiplier)
         total_damage += dmg
       elif card["suit"] == "♠":
-        hf = int(card["val"] * 2 * multiplier)
+        hf = int(card["val"] * 2 * effective_multiplier)
         total_heal += hf
       elif card["suit"] == "♥":
-        hf = int(card["val"] * 1.5 * multiplier)
+        hf = int(card["val"] * 1.5 * effective_multiplier)
         total_heal += hf
       elif card["suit"] == "♦":
-        cr = int(card["val"] * multiplier)
+        cr = int(card["val"] * player_credit_scaling)
         total_credits += cr
 
     elif card["type"] == "bug":
@@ -284,21 +292,21 @@ if st.button(
         st.session_state.player_hp -= 10
         st.toast("⚠️ バグ発生！ 10ダメージを受けた。", icon="💥")
       elif effect_type == "big_attack":
-        total_damage += int(30 * multiplier)
+        total_damage += int(30 * effective_multiplier)
       else:
-        total_credits += int(15 * multiplier)
+        total_credits += int(15 * player_credit_scaling)
 
     elif card["type"] == "ai":
-      total_damage += int(25 * multiplier)
-      total_heal += int(15 * multiplier)
-      total_credits += int(10 * multiplier)
+      total_damage += int(25 * effective_multiplier)
+      total_heal += int(15 * effective_multiplier)
+      total_credits += int(10 * player_credit_scaling)
 
     used_card = st.session_state.player_hand.pop(card_i)
     st.session_state.discard_pile.append(used_card)
 
   # 役による固定ボーナスの加算
-  total_damage += bonus_dmg
-  total_credits += bonus_cr
+  total_damage += effective_bonus_dmg
+  total_credits += int(bonus_cr * player_credit_scaling)
 
   if total_damage > 0:
     st.session_state.cpu_hp = max(0, st.session_state.cpu_hp - total_damage)
@@ -322,6 +330,9 @@ if st.button(
   # --- CPUのターン処理（手札8枚から必ず最適な5枚を選んでコンボ実行） ---
   st.session_state.last_cpu_action = []
   if st.session_state.cpu_hp > 0 and len(st.session_state.cpu_hand) >= 5:
+    # CPU側の経済スケーリング係数
+    cpu_credit_scaling = 1.0 + (st.session_state.cpu_credits / 50.0)
+
     best_combo_indices = None
     best_score = -1
     best_eval_result = None
@@ -351,8 +362,10 @@ if st.button(
       st.session_state.last_cpu_action.append(c)
 
     _, cpu_hand_name, cpu_multiplier, cpu_bonus_dmg, _ = best_eval_result
+    cpu_effective_multiplier = cpu_multiplier * cpu_credit_scaling
+    cpu_effective_bonus_dmg = int(cpu_bonus_dmg * cpu_credit_scaling)
 
-    cpu_total_dmg = cpu_bonus_dmg
+    cpu_total_dmg = cpu_effective_bonus_dmg
     cpu_total_heal = 0
     cpu_total_cr = 0
 
@@ -362,21 +375,21 @@ if st.button(
 
       if c["type"] == "normal":
         if c["suit"] == "♣":
-          cpu_total_dmg += int(c["val"] * 2 * cpu_multiplier)
+          cpu_total_dmg += int(c["val"] * 2 * cpu_effective_multiplier)
         elif c["suit"] == "♦":
-          cpu_total_cr += int(c["val"] * cpu_multiplier)
+          cpu_total_cr += int(c["val"] * cpu_credit_scaling)
         else:
-          cpu_total_heal += int(c["val"] * 1.5 * cpu_multiplier)
+          cpu_total_heal += int(c["val"] * 1.5 * cpu_effective_multiplier)
       else:
-        cpu_total_dmg += int(20 * cpu_multiplier)
-        cpu_total_cr += int(10 * cpu_multiplier)
+        cpu_total_dmg += int(20 * cpu_effective_multiplier)
+        cpu_total_cr += int(10 * cpu_credit_scaling)
 
     if cpu_total_dmg > 0:
       st.session_state.player_hp = max(
           0, st.session_state.player_hp - cpu_total_dmg
       )
       st.toast(
-          f"敵(CPU)の最適コンボ反撃（役: {cpu_hand_name}）！ {cpu_total_dmg}"
+          f"敵(CPU)の経済強化反撃（役: {cpu_hand_name}）！ {cpu_total_dmg}"
           " のダメージ！",
           icon="🚨",
       )
@@ -384,7 +397,9 @@ if st.button(
       st.session_state.cpu_credits += cpu_total_cr
       st.toast(f"敵(CPU)が暗号資産を調達 (+{cpu_total_cr} ⚡)", icon="💰")
     if cpu_total_heal > 0:
-      st.session_state.cpu_hp = min(1000, st.session_state.cpu_hp + cpu_total_heal)
+      st.session_state.cpu_hp = min(
+          1000, st.session_state.cpu_hp + cpu_total_heal
+      )
       st.toast(f"敵(CPU)がシステムを修復しました。", icon="🔧")
 
     # 消費した5枚分の手札を補充
