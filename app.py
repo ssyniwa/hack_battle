@@ -171,7 +171,7 @@ if selected_indices:
     c = st.session_state.player_hand[card_i]
     with preview_cols[idx]:
       try:
-        st.image(c["img"], width=100, caption=f"{c['id']}")
+        st.image(c["img"], width=200, caption=f"{c['id']}")
       except Exception:
         st.markdown(f"**{c['id']}**")
       st.text(f"属性:{c['suit']} / 値:{c['val']}")
