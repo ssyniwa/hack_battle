@@ -9,8 +9,8 @@ st.set_page_config(
 
 # ゲーム状態の初期化
 def init_game():
-  st.session_state.player_hp = 100
-  st.session_state.cpu_hp = 100
+  st.session_state.player_hp = 1000
+  st.session_state.cpu_hp = 1000
   st.session_state.player_credits = 10
   st.session_state.cpu_credits = 10
   st.session_state.turn = 1
@@ -102,7 +102,7 @@ col1, col2, col3 = st.columns(3)
 with col1:
   st.metric(
       label="プレイヤー サーバー耐久 (HP)",
-      value=f"{st.session_state.player_hp} / 100",
+      value=f"{st.session_state.player_hp} / 1000",
   )
   st.metric(
       label="プレイヤー資金 (Credits)", value=f"{st.session_state.player_credits} ⚡"
@@ -112,7 +112,7 @@ with col2:
   st.markdown(f"<p style='text-align: center; color: gray;'>山札残り: {len(st.session_state.deck)}枚 ｜ 捨て札: {len(st.session_state.discard_pile)}枚</p>", unsafe_allow_html=True)
 with col3:
   st.metric(
-      label="CPU サーバー耐久 (HP)", value=f"{st.session_state.cpu_hp} / 100"
+      label="CPU サーバー耐久 (HP)", value=f"{st.session_state.cpu_hp} / 1000"
   )
   st.metric(label="CPU資金 (Credits)", value=f"{st.session_state.cpu_credits} ⚡")
 
