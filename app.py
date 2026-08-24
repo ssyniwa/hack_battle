@@ -112,8 +112,8 @@ with col1:
       label="プレイヤー資金 (Credits)", value=f"{st.session_state.player_credits} ⚡"
   )
 with col2:
-  st.markdown(f"<h3 style='text-align: center;'>TURN {st.session_state.turn}</h3>", unsafe_allow_html=True)[cite: 3]
-  st.markdown(f"<p style='text-align: center; color: gray;'>山札残り: {len(st.session_state.deck)}枚 ｜ 捨て札: {len(st.session_state.discard_pile)}枚</p>", unsafe_allow_html=True)[cite: 3]
+  st.markdown(f"<h3 style='text-align: center;'>TURN {st.session_state.turn}</h3>", unsafe_allow_html=True)
+  st.markdown(f"<p style='text-align: center; color: gray;'>山札残り: {len(st.session_state.deck)}枚 ｜ 捨て札: {len(st.session_state.discard_pile)}枚</p>", unsafe_allow_html=True)
 with col3:
   st.metric(
       label="CPU サーバー耐久 (HP)", value=f"{st.session_state.cpu_hp} / 1000"
