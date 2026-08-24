@@ -327,26 +327,44 @@ if st.button(
     if new_c:
       st.session_state.player_hand.append(new_c)
 
-  # --- CPUのターン処理（手札8枚から必ず最適な5枚を選んでコンボ実行） ---
-  st.session_state.last_cpu_action = []
-  if st.session_state.cpu_hp > 0 and len(st.session_state.cpu_hand) >= 5:
-    # CPU側の経済スケーリング係数
-    cpu_credit_scaling = 1.0 + (st.session_state.cpu_credits / 50.0)
+  # --- CPUのターン処理（戦況に応じた高度な戦術選択） ---
+    # CPU自身のHPが低い場合は回復（♠, ♥）を、資金が少ない場合は経済（♦）を、それ以外は攻撃（♣）を重視する重み付け
+    hp_ratio = st.session_state.cpu_hp / 1000.0
+    credit_ratio = st.session_state.cpu_credits / 50.0
 
     best_combo_indices = None
     best_score = -1
     best_eval_result = None
 
-    # 手札8枚から5枚を選ぶすべての組み合わせ（8C5 = 56通り）を検証し、最も強い役を選ぶ
+    # 手札8枚から5枚を選ぶすべての組み合わせ（56通り）を評価
     for combo in itertools.combinations(range(len(st.session_state.cpu_hand)), 5):
       combo_cards = [st.session_state.cpu_hand[i] for i in combo]
       score, h_name, mult, b_dmg, b_cr = evaluate_poker_hands(combo_cards)
 
-      # 同点の場合は、合計数値やカード価値が高いものを優先するタイブレイカー
-      tie_breaker = sum(
-          c["val"] if c["type"] == "normal" else 10 for c in combo_cards
+      # 組み合わせ内のカード属性ごとの価値を算出
+      normal_cards = [c for c in combo_cards if c["type"] == "normal"]
+      dmg_value = sum(c["val"] for c in normal_cards if c["suit"] == "♣")
+      heal_value = sum(
+          c["val"] for c in normal_cards if c["suit"] in ["♠", "♥"]
       )
-      total_metric = score * 1000 + tie_breaker
+      cr_value = sum(c["val"] for c in normal_cards if c["suit"] == "♦")
+
+      # 戦況に応じた動的ウェイト（重み付け）の調整
+      # - HPが危険域(50%以下)なら回復の価値を大幅に引き上げる
+      # - 資金が少ないなら経済カードの価値を引き上げる
+      heal_weight = 3.0 if hp_ratio < 0.5 else 1.0
+      cr_weight = 2.0 if credit_ratio < 1.0 else 1.0
+
+      strategic_value = (
+          (dmg_value * 1.5)
+          + (heal_value * heal_weight)
+          + (cr_value * cr_weight)
+      )
+
+      # 役のスコア、倍率、および戦況に合わせた戦略的価値を統合して評価
+      total_metric = (
+          (score * 2000) + (mult * 500) + strategic_value + sum(c["val"] for c in combo_cards)
+      )
 
       if total_metric > best_score:
         best_score = total_metric
@@ -362,6 +380,9 @@ if st.button(
       st.session_state.last_cpu_action.append(c)
 
     _, cpu_hand_name, cpu_multiplier, cpu_bonus_dmg, _ = best_eval_result
+    
+    # CPU側の経済スケーリング係数
+    cpu_credit_scaling = 1.0 + (st.session_state.cpu_credits / 50.0)
     cpu_effective_multiplier = cpu_multiplier * cpu_credit_scaling
     cpu_effective_bonus_dmg = int(cpu_bonus_dmg * cpu_credit_scaling)
 
@@ -389,7 +410,7 @@ if st.button(
           0, st.session_state.player_hp - cpu_total_dmg
       )
       st.toast(
-          f"敵(CPU)の経済強化反撃（役: {cpu_hand_name}）！ {cpu_total_dmg}"
+          f"敵(CPU)の戦術的強襲（役: {cpu_hand_name}）！ {cpu_total_dmg}"
           " のダメージ！",
           icon="🚨",
       )
@@ -400,13 +421,12 @@ if st.button(
       st.session_state.cpu_hp = min(
           1000, st.session_state.cpu_hp + cpu_total_heal
       )
-      st.toast(f"敵(CPU)がシステムを修復しました。", icon="🔧")
+      st.toast(f"敵(CPU)が危地を脱するためシステムを修復しました。", icon="🔧")
 
     # 消費した5枚分の手札を補充
     for _ in range(5):
       new_cpu_c = draw_card_for_cpu()
       if new_cpu_c:
         st.session_state.cpu_hand.append(new_cpu_c)
-
   st.session_state.turn += 1
   st.rerun()
