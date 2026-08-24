@@ -35,7 +35,7 @@ def generate_deck_and_deal():
   for suit in suits:
     for num in range(1, 14):
       # 画像ファイル名のマッピング例: images/spade_1.png など
-      img_filename = f"images/{suit_names[suit]}_{num}.png"
+      img_filename = f"images/{suit_names[suit]}_{num}.jpg"
       deck.append({
           "type": "normal",
           "suit": suit,
@@ -50,7 +50,7 @@ def generate_deck_and_deal():
       "suit": "🌟",
       "val": 0,
       "id": "BUG-01",
-      "img": "images/bug_card.png",
+      "img": "images/bug_card.jpg",
   })
   deck.append({
       "type": "ai",
