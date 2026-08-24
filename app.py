@@ -154,7 +154,7 @@ if st.session_state.game_over:
     st.balloons()
     st.success(f"🎉 ハッキング勝利！ 敵を制圧しました！（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）")
   else:
-    st.error(f"💥 ハッキング失敗… システムがロックアウトされました。（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）"
+    st.error(f"💥 ハッキング失敗… システムがロックアウトされました。（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）")
 
   if st.button("🔄 システム再起動 (リトライ)"):
     init_game()
