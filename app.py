@@ -21,7 +21,7 @@ def init_game():
   generate_deck_and_deal()
 
 
-# デッキ生成と手札配布（プレイヤー・CPU共に8枚ずつに変更）[cite: 3, 4]
+# デッキ生成と手札配布（プレイヤー・CPU共に8枚ずつに変更）
 def generate_deck_and_deal():
   suits = ["♠", "♣", "♥", "♦"]
   suit_names = {
@@ -32,7 +32,7 @@ def generate_deck_and_deal():
   }
   deck = []
 
-  # 通常カードの生成 (4スート × 13数値 = 52枚)[cite: 3, 4]
+  # 通常カードの生成 (4スート × 13数値 = 52枚)
   for suit in suits:
     for num in range(1, 14):
       img_filename = f"images/{suit_names[suit]}_{num}.jpg"
@@ -44,7 +44,7 @@ def generate_deck_and_deal():
           "img": img_filename,
       })
 
-  # 特殊カード（バグ・AI）の追加[cite: 3, 4]
+  # 特殊カード（バグ・AI）の追加
   deck.append({
       "type": "bug",
       "suit": "🌟",
@@ -63,8 +63,8 @@ def generate_deck_and_deal():
   random.shuffle(deck)
 
   st.session_state.deck = deck
-  st.session_state.discard_pile = []  # 捨て札置き場[cite: 3, 4]
-  # プレイヤーとCPUにそれぞれ8枚ずつ手札を配る[cite: 3, 4]
+  st.session_state.discard_pile = []  # 捨て札置き場
+  # プレイヤーとCPUにそれぞれ8枚ずつ手札を配る
   st.session_state.player_hand = [st.session_state.deck.pop() for _ in range(8)]
   st.session_state.cpu_hand = [st.session_state.deck.pop() for _ in range(8)]
 
@@ -76,7 +76,7 @@ def draw_card_for_player():
       st.session_state.deck = st.session_state.discard_pile
       st.session_state.discard_pile = []
       random.shuffle(st.session_state.deck)
-      st.toast("🔄 山札が尽きたため、捨て札を再シャッフルしました！", icon="♻️")[cite: 3, 4]
+      st.toast("🔄 山札が尽きたため、捨て札を再シャッフルしました！", icon="♻️")
     else:
       return None
   return st.session_state.deck.pop()
@@ -99,7 +99,7 @@ if "player_hp" not in st.session_state:
 # タイトル[cite: 3, 4]
 st.title("💻 スート・コード：ネットワーク [拡張版]")
 st.markdown(
-    "**サイバーパンク・ハッキングバトル** — 8枚の手札から最大5枚を同時選択し、ポーカー役コンボで敵を圧倒せよ！"[cite: 3, 4]
+    "**サイバーパンク・ハッキングバトル** — 8枚の手札から最大5枚を同時選択し、ポーカー役コンボで敵を圧倒せよ！"
 )
 
 # ステータス表示[cite: 3, 4]
@@ -113,8 +113,8 @@ with col1:
       label="プレイヤー資金 (Credits)", value=f"{st.session_state.player_credits} ⚡"
   )
 with col2:
-  st.markdown(f"<h3 style='text-align: center;'>TURN {st.session_state.turn}</h3>", unsafe_allow_html=True)[cite: 3, 4]
-  st.markdown(f"<p style='text-align: center; color: gray;'>山札残り: {len(st.session_state.deck)}枚 ｜ 捨て札: {len(st.session_state.discard_pile)}枚</p>", unsafe_allow_html=True)[cite: 3, 4]
+  st.markdown(f"<h3 style='text-align: center;'>TURN {st.session_state.turn}</h3>", unsafe_allow_html=True)
+  st.markdown(f"<p style='text-align: center; color: gray;'>山札残り: {len(st.session_state.deck)}枚 ｜ 捨て札: {len(st.session_state.discard_pile)}枚</p>", unsafe_allow_html=True)
 with col3:
   st.metric(
       label="CPU サーバー耐久 (HP)", value=f"{st.session_state.cpu_hp} / 1000"
@@ -125,15 +125,15 @@ st.divider()
 
 # 直前のCPUの行動表示エリア[cite: 3, 4]
 if "last_cpu_action" in st.session_state and st.session_state.last_cpu_action:
-  st.markdown("### 🤖 直前のCPUのハッキング行動")[cite: 3, 4]
+  st.markdown("### 🤖 直前のCPUのハッキング行動")
   cpu_cols = st.columns(len(st.session_state.last_cpu_action))
   for idx, c in enumerate(st.session_state.last_cpu_action):
     with cpu_cols[idx]:
       try:
-        st.image(c["img"], width=200, caption=f"CPU: {c['id']}")[cite: 3, 4]
+        st.image(c["img"], width=200, caption=f"CPU: {c['id']}")
       except Exception:
-        st.markdown(f"**{c['id']}**")[cite: 3, 4]
-      st.text(f"属性:{c['suit']} / 値:{c['val']}")[cite: 3, 4]
+        st.markdown(f"**{c['id']}**")
+      st.text(f"属性:{c['suit']} / 値:{c['val']}")
   st.divider()
 
 # 勝敗判定[cite: 3, 4]
@@ -152,9 +152,9 @@ if st.session_state.player_hp <= 0 or st.session_state.cpu_hp <= 0:
 if st.session_state.game_over:
   if st.session_state.winner == "プレイヤー":
     st.balloons()
-    st.success(f"🎉 ハッキング勝利！ 敵を制圧しました！（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）")[cite: 3, 4]
+    st.success(f"🎉 ハッキング勝利！ 敵を制圧しました！（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）")
   else:
-    st.error(f"💥 ハッキング失敗… システムがロックアウトされました。（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）")[cite: 3, 4]
+    st.error(f"💥 ハッキング失敗… システムがロックアウトされました。（最終資金: プレイヤー {st.session_state.player_credits} ⚡ vs CPU {st.session_state.cpu_credits} ⚡）")
 
   if st.button("🔄 システム再起動 (リトライ)"):
     init_game()
@@ -163,8 +163,8 @@ if st.session_state.game_over:
 
 
 # --- プレイヤーターン：複数カード選択（最大5枚） ---
-st.subheader("🃏 サイバーデッキ（手札ターミナル・最大5枚選択可能）")[cite: 3, 4]
-st.markdown("戦術に合わせて最大5枚のプロトコルを同時に選択し、強力なコンボを発動せよ。")[cite: 3, 4]
+st.subheader("🃏 サイバーデッキ（手札ターミナル・最大5枚選択可能）")
+st.markdown("戦術に合わせて最大5枚のプロトコルを同時に選択し、強力なコンボを発動せよ。")
 
 hand_options = {
     f"[{c['id']}] 属性: {c['suit']} ｜ 値: {c['val']} (インデックス:{i})": i
@@ -174,25 +174,24 @@ hand_options = {
 selected_labels = st.multiselect(
     "同時に実行するカードを選択してください (最大5枚):",
     options=list(hand_options.keys()),
-    max_selections=5,  # 最大5枚に変更[cite: 3, 4]
+    max_selections=5,  # 最大5枚に変更
 )
 
 selected_indices = [hand_options[label] for label in selected_labels]
 
 if selected_indices:
-  st.markdown("#### ⚡ 選択中のコマンドプレビュー")[cite: 3, 4]
+  st.markdown("#### ⚡ 選択中のコマンドプレビュー")
   preview_cols = st.columns(len(selected_indices))
   for idx, card_i in enumerate(selected_indices):
     c = st.session_state.player_hand[card_i]
     with preview_cols[idx]:
       try:
-        st.image(c["img"], width=200, caption=f"{c['id']}")[cite: 3, 4]
+        st.image(c["img"], width=200, caption=f"{c['id']}")
       except Exception:
-        st.markdown(f"**{c['id']}**")[cite: 3, 4]
-      st.text(f"属性:{c['suit']} / 値:{c['val']}")[cite: 3, 4]
+        st.markdown(f"**{c['id']}**")
+      st.text(f"属性:{c['suit']} / 値:{c['val']}")
 else:
-  st.info("💡 カードを1枚以上選択すると、コンボ効果や詳細を確認できます。")[cite: 3, 4]
-
+  st.info("💡 カードを1枚以上選択すると、コンボ効果や詳細を確認できます。")
 st.divider()
 
 
