@@ -413,10 +413,11 @@ if st.button(
         st.session_state.cpu_credits += cpu_total_cr
         st.toast(f"敵(CPU)が暗号資産を調達 (+{cpu_total_cr} ⚡)", icon="💰")
       if cpu_total_heal > 0:
+        # 以下の行を追加してCPU自身のHPを回復させる
         st.session_state.cpu_hp = min(
             1000, st.session_state.cpu_hp + cpu_total_heal
         )
-        st.toast(f"敵(CPU)が危地を脱するためシステムを修復しました。", icon="🔧")
+        st.toast(f"敵(CPU)が危地を脱するためシステムを修復しました（+{cpu_total_heal}HP）。", icon="🔧")
 
       # 消費した5枚分の手札を補充
       for _ in range(5):
