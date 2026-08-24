@@ -327,102 +327,103 @@ if st.button(
     if new_c:
       st.session_state.player_hand.append(new_c)
 
-  # --- CPUのターン処理（手札8枚から戦況に応じて最適な5枚を選んでコンボ実行） ---
-    st.session_state.last_cpu_action = []
-    if st.session_state.cpu_hp > 0 and len(st.session_state.cpu_hand) >= 5:
-      # CPU自身のHPや資金状況に応じた動的ウェイトの算出
-      hp_ratio = st.session_state.cpu_hp / 1000.0
-      credit_ratio = st.session_state.cpu_credits / 50.0
-      cpu_credit_scaling = 1.0 + (st.session_state.cpu_credits / 50.0)
+  # --- CPUのターン処理（独立したブロックに修正） ---
+  st.session_state.last_cpu_action = []
+  if st.session_state.cpu_hp > 0 and len(st.session_state.cpu_hand) >= 5:
+    # CPU自身のHPや資金状況に応じた動的ウェイトの算出
+    hp_ratio = st.session_state.cpu_hp / 1000.0
+    credit_ratio = st.session_state.cpu_credits / 50.0
+    cpu_credit_scaling = 1.0 + (st.session_state.cpu_credits / 50.0)
 
-      best_combo_indices = None
-      best_score = -1
-      best_eval_result = None
+    best_combo_indices = None
+    best_score = -1
+    best_eval_result = None
 
-      # 手札8枚から5枚を選ぶすべての組み合わせ（8C5 = 56通り）を評価
-      for combo in itertools.combinations(range(len(st.session_state.cpu_hand)), 5):
-        combo_cards = [st.session_state.cpu_hand[i] for i in combo]
-        score, h_name, mult, b_dmg, b_cr = evaluate_poker_hands(combo_cards)
+    # 手札8枚から5枚を選ぶすべての組み合わせ（8C5 = 56通り）を評価
+    for combo in itertools.combinations(range(len(st.session_state.cpu_hand)), 5):
+      combo_cards = [st.session_state.cpu_hand[i] for i in combo]
+      score, h_name, mult, b_dmg, b_cr = evaluate_poker_hands(combo_cards)
 
-        normal_cards = [c for c in combo_cards if c["type"] == "normal"]
-        dmg_value = sum(c["val"] for c in normal_cards if c["suit"] == "♣")
-        heal_value = sum(
-            c["val"] for c in normal_cards if c["suit"] in ["♠", "♥"]
-        )
-        cr_value = sum(c["val"] for c in normal_cards if c["suit"] == "♦")
+      normal_cards = [c for c in combo_cards if c["type"] == "normal"]
+      dmg_value = sum(c["val"] for c in normal_cards if c["suit"] == "♣")
+      heal_value = sum(
+          c["val"] for c in normal_cards if c["suit"] in ["♠", "♥"]
+      )
+      cr_value = sum(c["val"] for c in normal_cards if c["suit"] == "♦")
 
-        heal_weight = 3.0 if hp_ratio < 0.5 else 1.0
-        cr_weight = 2.0 if credit_ratio < 1.0 else 1.0
+      heal_weight = 3.0 if hp_ratio < 0.5 else 1.0
+      cr_weight = 2.0 if credit_ratio < 1.0 else 1.0
 
-        strategic_value = (
-            (dmg_value * 1.5)
-            + (heal_value * heal_weight)
-            + (cr_value * cr_weight)
-        )
+      strategic_value = (
+          (dmg_value * 1.5)
+          + (heal_value * heal_weight)
+          + (cr_value * cr_weight)
+      )
 
-        total_metric = (
-            (score * 2000) + (mult * 500) + strategic_value + sum(c["val"] for c in combo_cards)
-        )
+      total_metric = (
+          (score * 2000) + (mult * 500) + strategic_value + sum(c["val"] for c in combo_cards)
+      )
 
-        if total_metric > best_score:
-          best_score = total_metric
-          best_combo_indices = combo
-          best_eval_result = (score, h_name, mult, b_dmg, b_cr)
+      if total_metric > best_score:
+        best_score = total_metric
+        best_combo_indices = combo
+        best_eval_result = (score, h_name, mult, b_dmg, b_cr)
 
-      cpu_selected_indices = sorted(best_combo_indices, reverse=True)
-      cpu_chosen_cards = [
-          st.session_state.cpu_hand[idx] for idx in cpu_selected_indices
-      ]
+    cpu_selected_indices = sorted(best_combo_indices, reverse=True)
+    cpu_chosen_cards = [
+        st.session_state.cpu_hand[idx] for idx in cpu_selected_indices
+    ]
 
-      for c in cpu_chosen_cards:
-        st.session_state.last_cpu_action.append(c)
+    for c in cpu_chosen_cards:
+      st.session_state.last_cpu_action.append(c)
 
-      _, cpu_hand_name, cpu_multiplier, cpu_bonus_dmg, _ = best_eval_result
-      cpu_effective_multiplier = cpu_multiplier * cpu_credit_scaling
-      cpu_effective_bonus_dmg = int(cpu_bonus_dmg * cpu_credit_scaling)
+    _, cpu_hand_name, cpu_multiplier, cpu_bonus_dmg, _ = best_eval_result
+    cpu_effective_multiplier = cpu_multiplier * cpu_credit_scaling
+    cpu_effective_bonus_dmg = int(cpu_bonus_dmg * cpu_credit_scaling)
 
-      cpu_total_dmg = cpu_effective_bonus_dmg
-      cpu_total_heal = 0
-      cpu_total_cr = 0
+    cpu_total_dmg = cpu_effective_bonus_dmg
+    cpu_total_heal = 0
+    cpu_total_cr = 0
 
-      for idx in cpu_selected_indices:
-        c = st.session_state.cpu_hand.pop(idx)
-        st.session_state.discard_pile.append(c)
+    for idx in cpu_selected_indices:
+      c = st.session_state.cpu_hand.pop(idx)
+      st.session_state.discard_pile.append(c)
 
-        if c["type"] == "normal":
-          if c["suit"] == "♣":
-            cpu_total_dmg += int(c["val"] * 2 * cpu_effective_multiplier)
-          elif c["suit"] == "♦":
-            cpu_total_cr += int(c["val"] * cpu_credit_scaling)
-          else:
-            cpu_total_heal += int(c["val"] * 1.5 * cpu_effective_multiplier)
+      if c["type"] == "normal":
+        if c["suit"] == "♣":
+          cpu_total_dmg += int(c["val"] * 2 * cpu_effective_multiplier)
+        elif c["suit"] == "♦":
+          cpu_total_cr += int(c["val"] * cpu_credit_scaling)
         else:
-          cpu_total_dmg += int(20 * cpu_effective_multiplier)
-          cpu_total_cr += int(10 * cpu_credit_scaling)
+          cpu_total_heal += int(c["val"] * 1.5 * cpu_effective_multiplier)
+      else:
+        cpu_total_dmg += int(20 * cpu_effective_multiplier)
+        cpu_total_cr += int(10 * cpu_credit_scaling)
 
-      if cpu_total_dmg > 0:
-        st.session_state.player_hp = max(
-            0, st.session_state.player_hp - cpu_total_dmg
-        )
-        st.toast(
-            f"敵(CPU)の戦術的強襲（役: {cpu_hand_name}）！ {cpu_total_dmg}"
-            " のダメージ！",
-            icon="🚨",
-        )
-      if cpu_total_cr > 0:
-        st.session_state.cpu_credits += cpu_total_cr
-        st.toast(f"敵(CPU)が暗号資産を調達 (+{cpu_total_cr} ⚡)", icon="💰")
-      if cpu_total_heal > 0:
-        # 以下の行を追加してCPU自身のHPを回復させる
-        st.session_state.cpu_hp = min(
-            1000, st.session_state.cpu_hp + cpu_total_heal
-        )
-        st.toast(f"敵(CPU)が危地を脱するためシステムを修復しました（+{cpu_total_heal}HP）。", icon="🔧")
+    if cpu_total_dmg > 0:
+      st.session_state.player_hp = max(
+          0, st.session_state.player_hp - cpu_total_dmg
+      )
+      st.toast(
+          f"敵(CPU)の戦術的強襲（役: {cpu_hand_name}）！ {cpu_total_dmg}"
+          " のダメージ！",
+          icon="🚨",
+      )
+    if cpu_total_cr > 0:
+      st.session_state.cpu_credits += cpu_total_cr
+      st.toast(f"敵(CPU)が暗号資産を調達 (+{cpu_total_cr} ⚡)", icon="💰")
+    if cpu_total_heal > 0:
+      # CPU自身のHPを回復させる処理
+      st.session_state.cpu_hp = min(
+          1000, st.session_state.cpu_hp + cpu_total_heal
+      )
+      st.toast(f"敵(CPU)が危地を脱するためシステムを修復しました（+{cpu_total_heal}HP）。", icon="🔧")
 
-      # 消費した5枚分の手札を補充
-      for _ in range(5):
-        new_cpu_c = draw_card_for_cpu()
-        if new_cpu_c:
-          st.session_state.cpu_hand.append(new_cpu_c)
+    # 消費した5枚分の手札を補充
+    for _ in range(5):
+      new_cpu_c = draw_card_for_cpu()
+      if new_cpu_c:
+        st.session_state.cpu_hand.append(new_cpu_c)
+
   st.session_state.turn += 1
   st.rerun()
