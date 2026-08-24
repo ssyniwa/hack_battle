@@ -259,7 +259,7 @@ if st.button("🚀 選択したカードで一斉ハッキングを実行", type
     st.session_state.cpu_hp = max(0, st.session_state.cpu_hp - total_damage)
     st.toast(f"ウイルス攻撃成功！ CPUに {total_damage} のダメージ！", icon="🦠")
   if total_heal > 0:
-    st.session_state.player_hp = min(100, st.session_state.player_hp + total_heal)
+    st.session_state.player_hp = min(1000, st.session_state.player_hp + total_heal)
     st.toast(f"システムが強化・修復され、HPが {total_heal} 回復！", icon="🛡️")
   if total_credits > 0:
     st.session_state.player_credits += total_credits
@@ -289,7 +289,7 @@ if st.button("🚀 選択したカードで一斉ハッキングを実行", type
         st.toast(f"敵(CPU)が暗号資産を調達 (+{cpu_cr} ⚡)", icon="💰")
       else:
         cpu_heal = cpu_card["val"]
-        st.session_state.cpu_hp = min(100, st.session_state.cpu_hp + cpu_heal)
+        st.session_state.cpu_hp = min(1000, st.session_state.cpu_hp + cpu_heal)
         st.toast(f"敵(CPU)がシステムを修復しました。", icon="🔧")
     else:
       st.session_state.player_hp = max(0, st.session_state.player_hp - 15)
