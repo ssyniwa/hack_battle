@@ -220,6 +220,7 @@ def evaluate_poker_hands(cards):
   # フラッシュ判定
   is_flush = (max_same_suit >= len(normal_cards)) and (len(normal_cards) >= 3)
 
+  
   # 役のランク付け（スコア化して最適選択に利用）
   if is_straight and is_flush:
     return 5, "ストレートフラッシュ", 3.0, 100, 50
@@ -227,10 +228,14 @@ def evaluate_poker_hands(cards):
     return 4, "フォーカード", 2.5, 80, 40
   elif max_same_val >= 3:
     return 3, "スリーカード", 2.0, 40, 20
+  elif is_flush:
+    # フラッシュをスリーカードの下（ペアの上）に追加
+    return 2, "フラッシュ", 1.8, 30, 15
   elif max_same_val >= 2:
-    return 2, "ワンペア/ツーペア", 1.5, 15, 10
+    # 元のペア/ツーペアのランクを1つ下げる
+    return 1, "ワンペア/ツーペア", 1.5, 15, 10
   else:
-    return 1, "単発/なし", 1.0, 0, 0
+    return 0, "単発/なし", 1.0, 0, 0
 
 
 # ターン実行ボタン
